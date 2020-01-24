@@ -14,6 +14,8 @@ else
 end
 
 
+
+
 function f = returnFields_helper(S,Str)
 f=cell(size(S));
 for i=1:numel(S)
