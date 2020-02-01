@@ -1,27 +1,43 @@
 
 
 %load Ross data from VPL
-load Z:\Ross\Experiments\Counts_by_Condition\M168_Counts_by_Condition
+load 'Z:\Ross\Experiments\Counts_by_Condition\M168_Counts_by_Condition.mat'
+ConditionsExport=ConditionsExport(1:4);
 
+mins=[];
+for i=1:ncond
+    mins=[mins;cellfun(@size,ConditionsExport(i).Counts, 'uniformoutput',0)];
+end
+mins=cell2mat(mins);ntrial=min(min(mins(:,2:2:end)));
 % we want to use this for multiple comparisons for each neuron (non
 % parametric 1 factor ANOVA for each neuron
 dim=size(cell2mat(ConditionsExport(2).Counts(:,2)));
 nneuron=dim(1);
-ntrial=dim(2);
-ncond=2; %number experimental conditions
+ncond=4; %number experimental conditions
+%fix for unequal trial counts!
+
 
 exp=nan(nneuron,ntrial,ncond);%preallocate;  
 spont=nan(nneuron,ntrial,ncond);
 ccount=0;
 time=1; %placeholder for time chunk to convert to rates;
-for i=2:3
+for i=1:ncond
     ccount=ccount+1;
-    exp(:,:,ccount)=cell2mat(ConditionsExport(i).Counts(:,2))/time;
-    spont(:,:,ccount)=cell2mat(ConditionsExport(i).Counts(:,1))/time; %pool spontaneous.
+    newexp=cell2mat(ConditionsExport(i).Counts(:,2))/time;
+    newspont=cell2mat(ConditionsExport(i).Counts(:,1))/time; %pool spontaneous.
+    exp(:,:,ccount)=newexp(:,1:ntrial);
+    spont(:,:,ccount)=newspont(:,1:ntrial);
 end
 
-exp_bi
-spont_bi
+
+
+%%
+
+%I should add something for probability-- we can do chi2 or binomial test.
+%What about paired aspect?
+
+%exp_bi
+%spont_bi
 
 % first rank-sum (paired by pairs of observations) for each experimental
 % condition
@@ -36,6 +52,9 @@ for i=1:ncond
 end
 H=p;H(H>.05)=0;H(H~=0)=1;  %each column a different experimental condition
 
+
+
+%%
  %[p,tbl,stats] = kruskalwallis(counts)
 
  figure
@@ -54,33 +73,34 @@ H=p;H(H>.05)=0;H(H~=0)=1;  %each column a different experimental condition
 
  figure
  
- subplot(1,2,1)
- pie(fractions(:,1))
- title('population response breakdown')
-
- subplot(1,2,2)
- pie(fractions(:,2))
+ for i=1:ncond
+    subplot(2,2,i)
+    pie(fractions(:,i))
+    title(ConditionsExport(i).name)
+ end
  legend('not significant p>.05 Wilcoxon sign-rank','significant decrease','significant increase')
- 
- %%
+ %
  fractions=fractions/nneuron;
  
  
 %% 
-counts1=cell2mat(cellfun(@(x) median(x'),ConditionsExport(2).Counts','UniformOutput',false))';
-counts2=cell2mat(cellfun(@(x) median(x'),ConditionsExport(3).Counts','UniformOutput',false))';
+Spont=reshape(spont,size(spont,1),size(spont,2)*size(spont,3))
+% counts1=cell2mat(cellfun(@(x) median(x'),ConditionsExport(2).Counts','UniformOutput',false))';
+% counts2=cell2mat(cellfun(@(x) median(x'),ConditionsExport(3).Counts','UniformOutput',false))';
 
-counts=[counts1 counts2];
+% counts=[counts1 counts2];
+
+counts=[ squeeze(median(exp,2)) median(Spont')'];
 %%volin plot practice
 figure
 violins = violinplot(counts, 'ShowNotches')
-spont=[violins(1).ScatterPlot.XData' violins(1).ScatterPlot.YData']
-exp=[violins(2).ScatterPlot.XData' violins(2).ScatterPlot.YData']
-
-for i=1:size(spont,1)
-    plot([spont(i,1) exp(i,1)],[spont(i,2) exp(i,2)],'color',[.7 .7 .7],'linewidth',.1);
-    hold on
-end
+% spont=[violins(1).ScatterPlot.XData' violins(1).ScatterPlot.YData']
+% exp=[violins(2).ScatterPlot.XData' violins(2).ScatterPlot.YData']
+% 
+% for i=1:size(spont,1)
+%     plot([spont(i,1) exp(i,1)],[spont(i,2) exp(i,2)],'color',[.7 .7 .7],'linewidth',.1);
+%     hold on
+% end
 
 
 
