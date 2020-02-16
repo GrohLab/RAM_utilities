@@ -1,3 +1,5 @@
+
+
 function r=raster(spikes,level,col,h)
 
 %this function produces a raster plot of vertical lines for multiple

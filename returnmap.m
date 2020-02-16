@@ -4,7 +4,7 @@ if size(spikes,2)>1, spikes=spikes';end
 isis=diff(spikes); isis=[spikes(1);isis];
 rm.d1=isis(1:end-1);%preceding ISIs
 rm.d2=isis(2:end); %followoing isis
-rm.spikes=isis(1:end-1);%preceding ISIs
+rm.spikes=spikes(1:end-1);
 rm.r=corrcoef([rm.d1 rm.d2]);
 
 if plotflag
